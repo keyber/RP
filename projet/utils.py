@@ -8,6 +8,23 @@ file_names = ["./data/a_example.txt",
               "./data/e_shiny_selfies.txt"]
 
 
+class Instance:
+    def __init__(self, data, modes, H, V):
+        # tags de chaque image
+        self.data = data
+        
+        # mode de chaque image (1 si H, 0 si V)
+        self._modes = modes
+        
+        # liste des indices H
+        self.H = H
+        
+        # liste des indices V
+        self.V = V
+        
+    def is_horizontal(self, i):
+        return self._modes[i]
+
 def score_transition(a, b):
     """le score est le minimum des cardinaux des ensembles :
         A inter B, A privé de B, B privé de A
@@ -18,35 +35,77 @@ def score_transition(a, b):
     return min(inter, a_prive_b, b_prive_a)
 
 
-def score_presentation(ordre, data, modes):
-    score = 0
-    current_tags = data[ordre[0]]
-    i=1
-    if not modes[ordre[0]]:
-        assert not modes[ordre[1]]
-        current_tags |= data[ordre[1]]
-        i+=1
+class Solution:
+    def __init__(self, instance):
+        self.instance = instance
+        self._ordre = np.empty(len(instance.H) + len(instance.V) // 2, dtype=tuple)
         
-    for i in range(i, len(ordre)):
-        new_tags = data[ordre[i]]
-        if not modes[ordre[i]]:
-            assert not modes[ordre[i+1]]
-            new_tags |= data[ordre[i+1]]
+        # indices des positions contenant des images H
+        self.H = set()
+        # indices des positions contenant des images V
+        self.V = set()
         
-        score += score_transition(current_tags, new_tags)
-        current_tags = new_tags
+        self.size = len(self._ordre)
+    
+    def setH(self, i, img):
+        self._ordre[i] = (img,)
+        self.H.add(i)
+    
+    def setV(self, i, img1, img2):
+        self._ordre[i] = (img1, img2)
+        self.V.add(i)
+    
+    def swap(self, i1, i2):
+        self._ordre[i1], self._ordre[i2] = self._ordre[i2], self._ordre[i1]
         
-    return score
-
-
+        # màj H et V
+        i_hor = i1 in self.H
+        j_hor = i2 in self.H
+        
+        # rien à faire si on échange deux images du même type
+        if i_hor != j_hor:
+            if i_hor:
+                self.H.remove(i1)
+                self.V.add(i1)
+                self.V.remove(i2)
+                self.H.add(i2)
+            else:
+                self.V.remove(i1)
+                self.H.add(i1)
+                self.H.remove(i2)
+                self.V.add(i2)
+    
+    def swapV(self, i1, side1, i2, side2):
+        assert i1 in self.V and i2 in self.V
+        
+        new_i1 = list(self._ordre[i1])
+        new_i2 = list(self._ordre[i2])
+        
+        new_i1[side1], new_i2[side2] = new_i2[side2], new_i1[side1]
+        
+        self._ordre[i1] = tuple(*new_i1)
+        self._ordre[i2] = tuple(*new_i2)
+    
+    def score(self):
+        score = 0
+        d = self.instance.data
+        current_tags = d[self._ordre[0][0]]
+        if len(self._ordre[0]) == 2:
+            current_tags |= d[self._ordre[0][1]]
+        
+        for tup in self._ordre[1:]:
+            new_tags = d[tup[0]]
+            if len(tup) == 2:
+                new_tags |= d[tup[1]]
+        
+            score += score_transition(current_tags, new_tags)
+            current_tags = new_tags
+    
+        return score
+    
+        
 def read(file, ratio):
-    """lit les premières images d'une instance de photos
-    retourne :
-    tags de chaque image,
-    mode de chaque image (1 si H, 0 si V),
-    liste des indices H,
-    liste des indices V
-    """
+    """lit les premières images d'une instance de photos"""
     if type(file) == int:
         file = file_names[file]
     
@@ -67,42 +126,38 @@ def read(file, ratio):
             else:
                 V.append(i)
         
-    return np.array(data, dtype=object), np.array(modes, dtype=bool), np.array(H, dtype=int), np.array(V, dtype=int)
+    return Instance(np.array(data, dtype=object), np.array(modes, dtype=bool), np.array(H, dtype=int), np.array(V, dtype=int))
+    
 
-
-def write(name, ordre, modes):
+def write(name, ordre):
     file = name + ".sol"
     with open(file, "w") as f:
         f.write(str(len(ordre)) + '\n')
-        i = 0
-        while i < len(ordre):
-            if modes[ordre[i]]:
-                # une photo h
-                f.write(str(ordre[i]) + "\n")
-            else:
-                # deux photos v
-                f.write(str(ordre[i]) + " ")
-                i += 1
-                assert not modes[ordre[i]]
-                f.write(str(ordre[i]) + "\n")
-            i += 1
+        for x in ordre:
+            f.write(" ".join(map(str, x)) + "\n")
 
 
 def _test():
     from collections import Counter
     
-    data, modes, H, V = read(0, .75)
-    for p in data:
+    ins = read(0, 1)
+    assert len(ins.data)==4
+    for p in ins.data:
         assert 1 < len(p) < 100
     
-    write("output/test", H + V, modes)
+    sol = Solution(ins)
+    sol.setH(0,0)
+    sol.setH(1,3)
+    sol.setV(2,1,2)
+    assert sol.score() == 2
+    write("output/test", sol._ordre)
     
     for i in range(1, 5):
-        data, modes, H, V = read(i, 1.0)
-        for p in data:
+        ins = read(i, 1.0)
+        for p in ins.data:
             assert 0 < len(p) < 100, len(p)
         
-        tags = set().union(*data)
+        tags = set().union(*ins.data)
         print("nombre de tag différents", len(tags))
         c = Counter([hash(tag) for tag in tags])
         print("nombre de tag de même hash", set(c.values()))

@@ -1,48 +1,79 @@
-import numpy as np
 import utils
+import time
 
 
-def glouton(data, modes, H, V):
+def glouton(ins: utils.Instance):
     """complexité : n^2"""
-    ordre = np.empty(len(H) + len(V), dtype=int)
+    sol = utils.Solution(ins)
     
-    # commence par la première photo horizontale
-    ordre[0] = H[0]
-    current_tags = data[ordre[0]]
+    # ensemble des images verticales encore non utilisées
+    set_V = set(ins.V)
     
-    set_V = set(V)
-    set_HV = set(H) | set_V
-    set_HV.remove(ordre[0])
+    # ensemble des images encore non utilisées
+    set_HV = set(ins.H) | set_V
     
-    for i in range(1, len(ordre)):
-        # meilleure transition directe
-        ordre[i] = max(set_HV, key=lambda x: utils.score_transition(current_tags, data[x]))
+    if len(ins.H):
+        # commence par la première photo horizontale si il y en a
+        sol.setH(0, ins.H[0])
+        current_tags = ins.data[ins.H[0]]
+        set_HV.remove(ins.H[0])
+    else:
+        # sinon par les deux premières photos verticales
+        assert len(ins.V)>=2
+        sol.setV(0, ins.V[0], ins.V[1])
+        current_tags = ins.data[ins.V[0]] | ins.data[ins.V[1]]
+        set_HV.remove(ins.V[0])
+        set_HV.remove(ins.V[1])
+        set_V.remove(ins.V[0])
+        set_V.remove(ins.V[1])
+    
+    for i in range(1, sol.size):
+        # choisit la meilleure transition directe
+        greedy = max(set_HV, key=lambda x: utils.score_transition(current_tags, ins.data[x]))
         
-        set_HV.remove(ordre[i])
-        new_tags = data[ordre[i]]
+        set_HV.remove(greedy)
+        new_tags = ins.data[greedy]
         
-        if not modes[ordre[i]]:
-            set_V.remove(ordre[i])
+        if ins.is_horizontal(greedy):
+            sol.setH(i, greedy)
+        else:
+            set_V.remove(greedy)
             
-            # ajoute la deuxième image verticale
-            ordre[i + 1] = max(set_V, key=lambda x: utils.score_transition(current_tags, new_tags | data[x]))
+            # ajoute une deuxième image verticale
+            greedy2 = max(set_V, key=lambda x: utils.score_transition(current_tags, new_tags | ins.data[x]))
             
-            set_HV.remove(ordre[i + 1])
-            set_V.remove(ordre[i + 1])
-            new_tags |= data[ordre[i + 1]]
+            set_HV.remove(greedy2)
+            set_V.remove(greedy2)
+            new_tags |= ins.data[greedy2]
             
             if len(set_V) == 1:
                 # si il ne reste plus qu'une image verticale on la supprime car on ne peut pas l'insérer
                 # enlever de set_V ne sert à rien car plus utilisé
-                set_HV.remove(iter(set_V))
-            i += 1
+                set_HV.remove(next(iter(set_V)))
+            
+            sol.setV(i, greedy, greedy2)
         
         current_tags = new_tags
-        i += 1
     
-    return ordre
+    return sol
 
 
+def _test_glouton():
+    for i in range(1,5):
+        ins = utils.read(i, .01)
+        t = time.time()
+        sol = glouton(ins)
+        print("taille", len(ins.data), "temps", time.time()-t, "score glouton", sol.score())
+        
+    
+    
 def glouton_v2(data, modes, H, V, window_size, score_factor):
+    # tri par nb tags croissant
     pass
 
+
+def _main():
+    _test_glouton()
+    
+if __name__ == '__main__':
+    _main()
