@@ -27,6 +27,7 @@ def glouton(ins: utils.Instance):
         set_V.remove(ins.V[0])
         set_V.remove(ins.V[1])
     
+    
     for i in range(1, sol.size):
         # choisit la meilleure transition directe
         greedy = max(set_HV, key=lambda x: utils.score_transition(current_tags, ins.data[x]))
@@ -60,20 +61,11 @@ def glouton(ins: utils.Instance):
 
 def _test_glouton():
     for i in range(1,5):
-        ins = utils.read(i, .01)
+        ins = utils.read(i, .02)
         t = time.time()
         sol = glouton(ins)
         print("taille", len(ins.data), "temps", time.time()-t, "score glouton", sol.score())
-        
-    
-    
-def glouton_v2(data, modes, H, V, window_size, score_factor):
-    # tri par nb tags croissant
-    pass
 
-
-def _main():
-    _test_glouton()
     
 if __name__ == '__main__':
-    _main()
+    _test_glouton()
