@@ -30,7 +30,7 @@ def glouton(ins: utils.Instance):
     
     for i in range(1, sol.size):
         # choisit la meilleure transition directe
-        greedy = max(set_HV, key=lambda x: utils.score_transition(current_tags, ins.data[x]))
+        greedy = max(set_HV, key=lambda x: utils.score_transition_data(current_tags, ins.data[x]))
         
         set_HV.remove(greedy)
         new_tags = ins.data[greedy]
@@ -41,7 +41,7 @@ def glouton(ins: utils.Instance):
             set_V.remove(greedy)
             
             # ajoute une deuxième image verticale
-            greedy2 = max(set_V, key=lambda x: utils.score_transition(current_tags, new_tags | ins.data[x]))
+            greedy2 = max(set_V, key=lambda x: utils.score_transition_data(current_tags, new_tags | ins.data[x]))
             
             set_HV.remove(greedy2)
             set_V.remove(greedy2)
@@ -64,6 +64,8 @@ def _test_glouton():
         ins = utils.read(i, .02)
         t = time.time()
         sol = glouton(ins)
+        assert len(set(sol._ordre)) == len(sol._ordre)
+        assert len(sol.V) + len(sol.H) == len(sol._ordre)
         print("taille", len(ins.data), "temps", time.time()-t, "score glouton", sol.score())
 
     

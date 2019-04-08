@@ -63,7 +63,7 @@ def order_h(ins, sol, queue, window_size, sufficient_ratio):
         score_max = -1
         # node_max_prev = None  # pour pouvoir supprimer l'élément choisi en O(1)
         for j, node in enumerate(queue):
-            s = utils.score_transition(current_tags, ins.data[node])
+            s = utils.score_transition_data(current_tags, ins.data[node])
             
             if s > score_max:
                 score_max = s
@@ -89,7 +89,7 @@ def order_v(ins, sol, queue, window_size, sufficient_ratio, current_tags, shift)
         
         score_max = -1
         for j, node in enumerate(queue):
-            s = utils.score_transition(current_tags, ins.data[node])
+            s = utils.score_transition_data(current_tags, ins.data[node])
             if s > score_max:
                 score_max = s
                 node_max0 = node
@@ -103,7 +103,7 @@ def order_v(ins, sol, queue, window_size, sufficient_ratio, current_tags, shift)
         
         score_max = -1
         for j, node in enumerate(queue):
-            s = utils.score_transition(current_tags, ins.data[node_max0] | ins.data[node])
+            s = utils.score_transition_data(current_tags, ins.data[node_max0] | ins.data[node])
             if s > score_max:
                 score_max = s
                 node_max1 = node
@@ -146,6 +146,8 @@ def _test_glouton_v2():
         ins = utils.read(i, .02)
         t = time.time()
         sol = glouton_v2(ins, wh=100, wv1=50, wv2=100, rh=.75, rv1=.5, rv2=.75)
+        assert len(set(sol._ordre)) == len(sol._ordre)
+        assert len(sol.V) + len(sol.H) == len(sol._ordre)
         print("taille", len(ins.data), "temps", time.time()-t, "score glouton_v2", sol.score())
 
 
