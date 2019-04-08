@@ -21,7 +21,7 @@ class Solution:
         sol.V = self.V.copy()
         sol.size = len(sol._ordre)
         return sol
-        
+    
     def setH(self, i, img):
         assert self.instance.is_horizontal(img)
         self._ordre[i] = (img,)
@@ -42,63 +42,13 @@ class Solution:
         res = min(inter, a_prive_b, b_prive_a)
         return res
     
-    def swap_diff(self, i1, i2):
-        # on prend i1 < i2
-        if i1 > i2:
-            i1, i2 = i2, i1
-        score = 0
-        s = self.score_transition_ind
-        
-        if i1 > 0:
-            score -= s(i1 - 1, i1)
-            score += s(i1 - 1, i2)
-        if i2 < self.size - 1:
-            score -= s(i2, i2 + 1)
-            score += s(i1, i2 + 1)
-        
-        # en plus pour des images non adjacentes
-        if abs(i1 - i2) != 1:
-            score -= s(i2 - 1, i2)
-            score += s(i2 - 1, i1)
-            
-            score -= s(i1, i1 + 1)
-            score += s(i2, i1 + 1)
-        
-        return score
-    
-    def swap_v_diff(self, i1, i2):
-        s = 0
-        
-        # images adjacentes
-        if abs(i1 - i2) == 1:
-            # on prend i1 < i2
-            if i1 > i2:
-                i1, i2 = i2, i1
-            
-            if i1 > 0:
-                s -= self.score_transition_ind(self._ordre[i1 - 1], self._ordre[i1])
-                s += self.score_transition_ind(self._ordre[i1 - 1], self._ordre[i2])
-            if i2 < self.size - 1:
-                s -= self.score_transition_ind(self._ordre[i2], self._ordre[i2 + 1])
-                s += self.score_transition_ind(self._ordre[i1], self._ordre[i2+1])
-        
-        # images non adjacentes
-        else:
-            for i in (i1, i2):
-                if i > 0:
-                    s -= self.score_transition_ind(self._ordre[i - 1], self._ordre[i])
-                    s += self.score_transition_ind(self._ordre[i - 1], self._ordre[i])
-                if i < self.size - 1:
-                    s -= self.score_transition_ind(self._ordre[i], self._ordre[i + 1])
-                    s += self.score_transition_ind(self._ordre[i], self._ordre[i + 1])
-        
     def local_score(self, i1, i2):
         s = 0
-
+        
         # on prend i1 < i2
         if i1 > i2:
             i1, i2 = i2, i1
-
+        
         if i1 > 0:
             s += self.score_transition_ind(i1 - 1, i1)
         if i2 < self.size - 1:
@@ -111,7 +61,7 @@ class Solution:
         else:
             s += self.score_transition_ind(i1, i1 + 1)
             s += self.score_transition_ind(i2, i2 - 1)
-
+        
         return s
     
     def swap(self, i1, i2, only_if_better=False):
@@ -178,7 +128,6 @@ class Solution:
             return 0
         
         return diff
-    
     
     def score(self, verbose=False):
         assert len(self.H) + len(self.V) == self.size, "solution non complétée"
