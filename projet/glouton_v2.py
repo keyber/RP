@@ -1,4 +1,5 @@
 import utils
+import solution
 import time
 
 
@@ -59,9 +60,9 @@ def order_h(ins, sol, queue, window_size, sufficient_ratio):
     
     while queue.size:
         bound_max_score = len(current_tags) // 2
-        # node_max = None
+        node_max = None
         score_max = -1
-        # node_max_prev = None  # pour pouvoir supprimer l'élément choisi en O(1)
+        node_max_prev = None  # pour pouvoir supprimer l'élément choisi en O(1)
         for j, node in enumerate(queue):
             s = utils.score_transition_data(current_tags, ins.data[node])
             
@@ -86,7 +87,9 @@ def order_h(ins, sol, queue, window_size, sufficient_ratio):
 def order_v(ins, sol, queue, window_size, sufficient_ratio, current_tags, shift):
     for i in range(queue.size//2):
         bound_max_score = len(current_tags) // 2
-        
+
+        node_max0 = None
+        node_max_prev = None  # pour pouvoir supprimer l'élément choisi en O(1)
         score_max = -1
         for j, node in enumerate(queue):
             s = utils.score_transition_data(current_tags, ins.data[node])
@@ -100,7 +103,8 @@ def order_v(ins, sol, queue, window_size, sufficient_ratio, current_tags, shift)
                 break
         
         queue.delete_following_node(node_max_prev)
-        
+
+        node_max1 = None
         score_max = -1
         for j, node in enumerate(queue):
             s = utils.score_transition_data(current_tags, ins.data[node_max0] | ins.data[node])
@@ -121,7 +125,7 @@ def order_v(ins, sol, queue, window_size, sufficient_ratio, current_tags, shift)
 
 
 def glouton_v2(ins: utils.Instance, wh, wv1, wv2, rh, rv1, rv2):
-    sol = utils.Solution(ins)
+    sol = solution.Solution(ins)
     if len(ins.H):
         # trie les images par nb de tag décroissant
         # on les placera par ordre CROISSANT pour finir par une grande image

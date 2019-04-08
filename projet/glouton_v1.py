@@ -1,10 +1,11 @@
 import utils
+import solution
 import time
 
 
 def glouton(ins: utils.Instance):
     """complexité : n^2"""
-    sol = utils.Solution(ins)
+    sol = solution.Solution(ins)
     
     # ensemble des images verticales encore non utilisées
     set_V = set(ins.V)
