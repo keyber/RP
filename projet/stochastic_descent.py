@@ -3,7 +3,7 @@ import solution
 import random
 
 
-def stochastic_descent(sol: solution.Solution, n_iter, only_if_better=True, ratioHV=None, verbose=True):
+def stochastic_descent(sol: solution.Solution, n_iter, only_if_better=True, ratioHV=None, verbose=False):
     if ratioHV is None:
         ratioHV = 1 - len(sol.V) / sol.size
     if len(sol.V) == 0:
@@ -59,15 +59,15 @@ def _test_swap():
     sol.swap(0, 3)
     assert sol.score() == 4
     
-    for _ in range(100):
+    for _ in range(10):
         working_sol = sol.copy()
         best_sol, best_score = stochastic_descent(working_sol, 10000)
+        print("optimum trouvé", best_score)
         assert best_score>=6, "score found=" + str(best_score) + " retry ?"
     
-    for _ in range(100):
-        working_sol = sol.copy()
-        best_sol, best_score = stochastic_descent(working_sol, 10000, only_if_better=False)
-        assert best_score==8, "score found=" + str(best_score) + " retry ?"
+    working_sol = sol.copy()
+    best_sol, best_score = stochastic_descent(working_sol, 10000, only_if_better=False)
+    assert best_score==8, "score found=" + str(best_score) + " retry ?"
     
 
 if __name__ == '__main__':
