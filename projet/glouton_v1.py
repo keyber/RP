@@ -1,6 +1,6 @@
 import utils
 import solution
-import time
+from time import time
 
 
 def glouton(ins: utils.Instance):
@@ -63,12 +63,30 @@ def glouton(ins: utils.Instance):
 def _test_glouton():
     for i in range(1,5):
         ins = utils.read(i, .02)
-        t = time.time()
+        t = time()
         sol = glouton(ins)
-        assert len(set(sol._ordre)) == len(sol._ordre)
-        assert len(sol.V) + len(sol.H) == len(sol._ordre)
-        print("taille", len(ins.data), "temps", time.time()-t, "score glouton", sol.score())
+        assert len(set(sol.ordre)) == len(sol.ordre)
+        assert len(sol.V) + len(sol.H) == len(sol.ordre)
+        print("taille", len(ins.data), "temps", time() - t, "score glouton", sol.score())
 
+def _plot():
+    import matplotlib.pyplot as plt
+    x = range(10, 5011, 1000)
+    times = []
+    scores = []
+    for n in x:
+        ins = utils.read(1, n)
+        t = time()
+        sol = glouton(ins)
+        print("taille", len(ins.data), "temps", round(time()-t, 1), "score glouton_v2", sol.score())
+        times.append(time()-t)
+        scores.append(sol.score())
+    ax1 = plt.gca()
+    ax2 = ax1.twinx()
+    ax1.plot(x, times)
+    ax2.plot(x, scores, color="green")
+    plt.show()
     
 if __name__ == '__main__':
-    _test_glouton()
+    # _test_glouton()
+    _plot()

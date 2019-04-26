@@ -21,7 +21,11 @@ class Instance:
         
         # liste des indices V
         self.V = V
-        
+    
+    @staticmethod
+    def create_instance_h(data):
+        return Instance(data,[1]*len(data),range(len(data)), [])
+    
     def is_horizontal(self, i):
         return self._modes[i]
 
@@ -46,11 +50,13 @@ def read(file, n):
         tot = int(f.readline())
         if type(n) == float:
             n = int(n * tot)
+        elif n==1:
+            print("use float for ratio, int for exact number")
         
         for i, line in enumerate(f.readlines()[:n]):
             line = line.split()
             mode, tags = line[0], line[2:]  # saute le nombre de tags
-            data.append(frozenset(tags))
+            data.append(set(tags)) # frozenset est 10% moins bien, hash(tags) 5% mieux
             modes.append(mode == 'H')
             
             if mode == 'H':
@@ -80,7 +86,7 @@ def _test_data():
     
     for p in ins.data:
         assert 0 < len(p) < 100
-        
+    
     for i in range(1, 5):
         ins = read(i, 1.0)
         for p in ins.data:
